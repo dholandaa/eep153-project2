@@ -1,0 +1,75 @@
+# Start with an empty list of age-rages
+age_ranges = []
+
+# Ranges top out at 80, and go in five year increments
+for i in range(0,80,5):
+    age_ranges.append(f"{i:02d}"+f"{i+4:02d}")
+
+age_ranges.append("80UP")
+
+print(age_ranges)
+
+
+my_keys_to_data = {}
+
+for age_range in age_ranges:
+    male_key = "SP.POP." + age_range + ".MA"
+    female_key = "SP.POP." + age_range + ".FE"
+    
+    my_keys_to_data[male_key] = "Males " + age_range
+    my_keys_to_data[female_key] = "Females " + age_range 
+    
+    male_variables = {"SP.POP."+age_range+".MA":"Males "+age_range for age_range in age_ranges}
+female_variables = {"SP.POP."+age_range+".FE":"Females "+age_range for age_range in age_ranges}
+
+variables = male_variables
+variables.update(female_variables)
+
+print(variables)
+
+
+import plotly.offline as py
+import plotly.graph_objs as go
+import pandas as pd
+import numpy as np
+
+def plot_population(place, year):
+    """return counts of people in age-sex composition and make pyramid"""
+    male_variables = {"SP.POP."+age_range+".MA":"Males "+age_range for age_range in age_ranges}
+    female_variables = {"SP.POP."+age_range+".FE":"Females "+age_range for age_range in age_ranges}
+
+    variables = male_variables
+    variables.update(female_variables)
+    
+    df = wbdata.get_dataframe(variables,country=place)
+    
+        
+    py.init_notebook_mode(connected=True)
+
+    layout = go.Layout(barmode='overlay',
+                   yaxis=go.layout.YAxis(range=[0, 90], title='Age'),
+                   xaxis=go.layout.XAxis(title='Number'))
+                    
+
+    year = year
+    data = [go.Bar(x = df.loc[str(year),:].filter(regex="Male").values,
+               y = [int(s[:2])+1 for s in age_ranges],
+               orientation='h',
+               name='Men',
+               marker=dict(color='steelblue'),
+               hoverinfo='skip'
+               ),
+
+            go.Bar(x = -df.loc[str(year),:].filter(regex="Female").values,
+               y=[int(s[:2])+1 for s in age_ranges],
+               orientation='h',
+               name='Women',
+               marker=dict(color='lightsalmon'),
+               hoverinfo='skip',
+                   )
+            ]
+    return py.iplot(dict(data=data, layout=layout))
+    
+    plot_population("USA", 2010)
+    
+    
