@@ -1,0 +1,95 @@
+!pip install wbdata
+!pip install cufflinks
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import wbdata
+import cufflinks as cf
+cf.go_offline()
+
+def population_table(areas, low, high=None):
+        
+    if (high==None):
+        high=low
+        
+    if (low >= 80 or high >= 80):
+        print('Error, age value too high')
+        return
+    
+    f_variable_labels = {
+        'SP.POP.0004.FE': '0',
+        'SP.POP.0509.FE': '5',
+        'SP.POP.1014.FE': '10',
+        'SP.POP.1519.FE': '15',
+        'SP.POP.2024.FE': '20',
+        'SP.POP.2529.FE': '25',
+        'SP.POP.3034.FE': '30',
+        'SP.POP.3539.FE': '35',
+        'SP.POP.4044.FE': '40',
+        'SP.POP.4549.FE': '45',
+        'SP.POP.5054.FE': '50',
+        'SP.POP.5559.FE': '55',
+        'SP.POP.6064.FE': '60',
+        'SP.POP.6569.FE': '65',
+        'SP.POP.7074.FE': '70',
+        'SP.POP.7579.FE': '75',
+        'SP.POP.80UP.FE': '80',
+    }
+    m_variable_labels = {
+        'SP.POP.0004.MA': '0',
+        'SP.POP.0509.MA': '5',
+        'SP.POP.1014.MA': '10',
+        'SP.POP.1519.MA': '15',
+        'SP.POP.2024.MA': '20',
+        'SP.POP.2529.MA': '25',
+        'SP.POP.3034.MA': '30',
+        'SP.POP.3539.MA': '35',
+        'SP.POP.4044.MA': '40',
+        'SP.POP.4549.MA': '45',
+        'SP.POP.5054.MA': '50',
+        'SP.POP.5559.MA': '55',
+        'SP.POP.6064.MA': '60',
+        'SP.POP.6569.MA': '65',
+        'SP.POP.7074.MA': '70',
+        'SP.POP.7579.MA': '75',
+        'SP.POP.80UP.MA': '80',
+    }
+    #Creating DataFrames, one for females and one for males in a specific area.
+    f_df = wbdata.get_dataframe(f_variable_labels, country=areas)
+    m_df = wbdata.get_dataframe(m_variable_labels, country=areas)
+    
+    f_df_new = pd.DataFrame()
+    m_df_new = pd.DataFrame()
+    
+    #Creating female age table
+    i = 0
+    while i < 80:
+        curr = f_df[str(i)] 
+        f_df_new[str(i)+"F"] = round(curr/5)
+        i += 1
+        while i%5 != 0:
+            f_df_new[str(i)+"F"] = round(curr/5)
+            i += 1
+    
+    #Creating male age table
+    i = 0
+    while i < 80:
+        curr = m_df[str(i)] 
+        m_df_new[str(i)+"M"] = round(curr/5)
+        i += 1
+        while i%5 != 0:
+            m_df_new[str(i)+"M"] = round(curr/5)
+            i += 1 
+    
+    #Creating array of ages
+    array_range_f = [str(x)+"F" for x in range(low, high + 1)]
+    array_range_m = [str(x)+"M" for x in range(low, high + 1)]
+    
+    #Selecting age
+    selected_f = f_df_new[array_range_f]
+    selected_m = m_df_new[array_range_m]
+    selected = selected_f.join(selected_m)
+    
+    return selected
+    
+    population_table(['USA'], 0, 79) 
